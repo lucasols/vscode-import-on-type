@@ -18,10 +18,8 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   function updateConfig() {
-    const importsConfig =
+    config.imports =
       vscode.workspace.getConfiguration('importOnType').get<ImportCfg[]>('imports') ?? []
-
-    config.imports = importsConfig
 
     config.triggerOrganizeImports =
       vscode.workspace
@@ -56,8 +54,9 @@ export function activate(context: vscode.ExtensionContext) {
       : new vscode.Position(0, 0)
 
     // Generate import statement based on configuration
-    const importStatement = `import ${importType === 'type' ? 'type ' : ''} ${
-      importType === 'namespace' ? `* as ${matchedImport}`
+    const importStatement = `import ${
+      importType === 'type' ? `{ type ${matchedImport} } `
+      : importType === 'namespace' ? `* as ${matchedImport}`
       : importType === 'default' ? matchedImport
       : `{ ${matchedImport} }`
     } from '${importPath}'`
@@ -78,7 +77,8 @@ export function activate(context: vscode.ExtensionContext) {
     const diagnostics = vscode.languages.getDiagnostics(document.uri)
 
     const tsUndefinedVariableErrors = diagnostics.filter(
-      (diagnostic) => diagnostic.code === 2304,
+      (diagnostic) =>
+        diagnostic.code === 2304 || diagnostic.code === 2582 || diagnostic.code === 2552,
     )
 
     for (const diagnostic of tsUndefinedVariableErrors) {

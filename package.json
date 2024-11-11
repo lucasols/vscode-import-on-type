@@ -61,30 +61,44 @@
           "items": {
             "type": "object",
             "properties": {
-              "variableOrFn": {
-                "type": "string",
-                "description": "The variable or function that will be imported"
-              },
               "path": {
                 "type": "string",
                 "description": "The import path"
               },
-              "isTypeImport": {
-                "type": "boolean"
+              "typeImports": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of type imports"
               },
-              "isDefaultImport": {
-                "type": "boolean"
+              "defaultImports": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of default imports"
               },
-              "isNamespaceImport": {
-                "type": "boolean"
+              "namespaceImports": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of namespace imports"
+              },
+              "namedImports": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of named imports"
               }
             },
             "required": [
-              "variableOrFn",
               "path"
             ]
           },
-          "description": "Array of import triggers and their corresponding import statements"
+          "description": "Array of import configurations"
         }
       }
     }

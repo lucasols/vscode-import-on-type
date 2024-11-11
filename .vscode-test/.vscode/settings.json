@@ -5,12 +5,12 @@
   "importOnType.imports": [
     {
       "path": "cx",
-      "variableOrFn": "cx"
+      "namedImports": ["cx", "test2", "test"],
+      "typeImports": ["CX"]
     },
     {
       "path": "cxType",
-      "variableOrFn": "cxA",
-      "isTypeImport": true
+      "typeImports": ["cxA", "cxB"]
     }
   ]
 }
