@@ -11,7 +11,7 @@
     "build": " pnpm lint && pnpm build:no-test",
     "build:no-test": "tsup --minify --dts && vsce package",
     "dev": "tsup --watch --minify --dts",
-    "install-extension": "code --install-extension $(ls -t import-on-type-*.vsix | head -n 1)"
+    "install-extension": "cursor --install-extension $(ls -t import-on-type-*.vsix | head -n 1)"
   },
   "keywords": [],
   "author": "",

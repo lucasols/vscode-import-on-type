@@ -2,18 +2,18 @@ import * as vscode from 'vscode'
 
 export function activate(context: vscode.ExtensionContext) {
   type ImportCfg = {
-    variableOrFn: string
     path: string
-    isTypeImport?: boolean
-    isDefaultImport?: boolean
-    isNamespaceImport?: boolean
+    typeImports?: string[]
+    defaultImports?: string[]
+    namespaceImports?: string[]
+    namedImports?: string[]
   }
 
   const config: {
-    imports: Map<string, ImportCfg>
+    imports: ImportCfg[]
     triggerOrganizeImports: boolean
   } = {
-    imports: new Map(),
+    imports: [],
     triggerOrganizeImports: true,
   }
 
@@ -21,11 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
     const importsConfig =
       vscode.workspace.getConfiguration('importOnType').get<ImportCfg[]>('imports') ?? []
 
-    const configByVariableOrFn = new Map<string, ImportCfg>(
-      importsConfig.map((cfg) => [cfg.variableOrFn, cfg]),
-    )
-
-    config.imports = configByVariableOrFn
+    config.imports = importsConfig
 
     config.triggerOrganizeImports =
       vscode.workspace
@@ -37,7 +33,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   async function addImportToDocument(
     document: vscode.TextDocument,
-    importCfg: ImportCfg,
+    importPath: string,
+    matchedImport: string,
+    importType: 'type' | 'default' | 'namespace' | 'named',
   ) {
     const edit = new vscode.WorkspaceEdit()
 
@@ -58,11 +56,11 @@ export function activate(context: vscode.ExtensionContext) {
       : new vscode.Position(0, 0)
 
     // Generate import statement based on configuration
-    const importStatement = `import ${importCfg.isTypeImport ? 'type ' : ''}${
-      importCfg.isNamespaceImport ? `* as ${importCfg.variableOrFn}`
-      : importCfg.isDefaultImport ? importCfg.variableOrFn
-      : `{ ${importCfg.variableOrFn} }`
-    } from '${importCfg.path}'`
+    const importStatement = `import ${importType === 'type' ? 'type ' : ''} ${
+      importType === 'namespace' ? `* as ${matchedImport}`
+      : importType === 'default' ? matchedImport
+      : `{ ${matchedImport} }`
+    } from '${importPath}'`
 
     // Add newline before the import if we're not at the start of the file
     const textToInsert = lastImportMatch ? `\n${importStatement}` : `${importStatement}\n`
@@ -87,11 +85,43 @@ export function activate(context: vscode.ExtensionContext) {
       const range = diagnostic.range
       const text = document.getText(range)
 
-      const importCfg = config.imports.get(text)
+      let matchedImport: string | undefined
+      let importPath: string | undefined
+      let importType: 'type' | 'default' | 'namespace' | 'named' | undefined
 
-      if (!importCfg) continue
+      for (const importCfg of config.imports) {
+        if (importCfg.typeImports?.includes(text)) {
+          matchedImport = text
+          importPath = importCfg.path
+          importType = 'type'
+          break
+        }
 
-      addImportToDocument(document, importCfg)
+        if (importCfg.defaultImports?.includes(text)) {
+          matchedImport = text
+          importPath = importCfg.path
+          importType = 'default'
+          break
+        }
+
+        if (importCfg.namespaceImports?.includes(text)) {
+          matchedImport = text
+          importPath = importCfg.path
+          importType = 'namespace'
+          break
+        }
+
+        if (importCfg.namedImports?.includes(text)) {
+          matchedImport = text
+          importPath = importCfg.path
+          importType = 'named'
+          break
+        }
+      }
+
+      if (!matchedImport || !importPath || !importType) continue
+
+      addImportToDocument(document, importPath, matchedImport, importType)
     }
   }
 
