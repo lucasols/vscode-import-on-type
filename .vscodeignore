@@ -1,8 +1,8 @@
 .vscode
 node_modules
-!node_modules/esbuild
 out/
 src/
 tsconfig.json
 tsconfig.prod.json
 .vscode-test/
+pnpm-lock.yaml
