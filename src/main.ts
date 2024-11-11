@@ -1,3 +1,4 @@
+import { EnhancedMap } from '@ls-stack/utils/enhancedMap'
 import * as vscode from 'vscode'
 
 export function activate(context: vscode.ExtensionContext) {
@@ -8,6 +9,8 @@ export function activate(context: vscode.ExtensionContext) {
     namespaceImports?: string[]
     namedImports?: string[]
   }
+
+  const regexCache = new EnhancedMap<string, RegExp>()
 
   const config: {
     imports: ImportCfg[]
@@ -57,14 +60,15 @@ export function activate(context: vscode.ExtensionContext) {
     let importSpecifier: string
     switch (importType) {
       case 'type': {
-        const alreadyImportsPathRegex = new RegExp(
-          String.raw`from\s+['"]${importPath}['"]`,
+        const alreadyImportsPathRegex = regexCache.getOrInsert(
+          importPath,
+          () => new RegExp(String.raw`from\s+['"]${importPath}['"]`),
         )
 
         if (alreadyImportsPathRegex.test(fullText)) {
-          importSpecifier = `type { ${matchedImport} }`
-        } else {
           importSpecifier = `{ type ${matchedImport} } `
+        } else {
+          importSpecifier = `type { ${matchedImport} }`
         }
         break
       }
