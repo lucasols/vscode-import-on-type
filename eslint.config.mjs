@@ -119,4 +119,7 @@ export default tseslint.config(
       '@lucasols/extended-lint/no-unused-type-props-in-args': ERROR_IN_CI,
     },
   },
+  {
+    ignores: ['**/.vscode-test/**'],
+  },
 )
