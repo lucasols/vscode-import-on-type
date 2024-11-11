@@ -120,6 +120,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['**/.vscode-test/**', '**/dist/**'],
+    ignores: ['**/.vscode-test/**', '**/dist/**', 'eslint.config.js'],
   },
 )
