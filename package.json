@@ -19,7 +19,7 @@
   "devDependencies": {
     "@ls-stack/extended-lint": "^0.14.2",
     "@types/node": "^22.9.0",
-    "@types/vscode": "^1.95.0",
+    "@types/vscode": "~1.83.0",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
     "@typescript-eslint/parser": "^8.13.0",
     "@vscode/vsce": "^3.2.1",
