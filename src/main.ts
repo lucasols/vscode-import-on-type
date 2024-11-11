@@ -54,12 +54,32 @@ export function activate(context: vscode.ExtensionContext) {
       : new vscode.Position(0, 0)
 
     // Generate import statement based on configuration
-    const importStatement = `import ${
-      importType === 'type' ? `{ type ${matchedImport} } `
-      : importType === 'namespace' ? `* as ${matchedImport}`
-      : importType === 'default' ? matchedImport
-      : `{ ${matchedImport} }`
-    } from '${importPath}'`
+    let importSpecifier: string
+    switch (importType) {
+      case 'type': {
+        const alreadyImportsPathRegex = new RegExp(
+          String.raw`from\s+['"]${importPath}['"]`,
+        )
+
+        if (alreadyImportsPathRegex.test(fullText)) {
+          importSpecifier = `type { ${matchedImport} }`
+        } else {
+          importSpecifier = `{ type ${matchedImport} } `
+        }
+        break
+      }
+
+      case 'namespace':
+        importSpecifier = `* as ${matchedImport}`
+        break
+      case 'default':
+        importSpecifier = matchedImport
+        break
+      default:
+        importSpecifier = `{ ${matchedImport} }`
+        break
+    }
+    const importStatement = `import ${importSpecifier} from '${importPath}'`
 
     // Add newline before the import if we're not at the start of the file
     const textToInsert = lastImportMatch ? `\n${importStatement}` : `${importStatement}\n`
