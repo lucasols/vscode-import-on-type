@@ -11,31 +11,38 @@ Import on type automatically add imports you configured if they are missing whil
 {
   "importOnType.imports": [
     {
-      "variableOrFn": "memo",
       "path": "react",
-      // will add a named import:
+      "namedImports": ["memo", "useState", "useEffect"],
+      // will add named imports:
       // import { memo } from 'react'
+      // import { useState } from 'react'
+      // import { useEffect } from 'react'
     },
     {
-      "variableOrFn": "FC",
       "path": "react",
-      "isTypeImport": true,
-      // will add a named type import:
+      "typeImports": ["FC", "ReactNode"],
+      // will add type imports:
       // import type { FC } from 'react'
+      // import type { ReactNode } from 'react'
     },
     {
-      "variableOrFn": "React",
       "path": "react",
-      "isDefaultImport": true,
-      // will add a default import:
+      "defaultImports": ["React"],
+      // will add default imports:
       // import React from 'react'
     },
     {
-      "variableOrFn": "fs",
       "path": "fs",
-      "isNamespaceImport": true,
-      // will add a namespace import:
+      "namespaceImports": ["fs"],
+      // will add namespace imports:
       // import * as fs from 'fs'
+    },
+    {
+      // You can mix different types of imports from the same path
+      "path": "@/utils",
+      "namedImports": ["formatDate", "formatNumber"],
+      "typeImports": ["DateFormat"],
+      "defaultImports": ["Utils"],
     },
   ],
 
