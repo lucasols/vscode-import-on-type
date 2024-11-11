@@ -32,21 +32,38 @@ export function activate(context: vscode.ExtensionContext) {
 
   updateConfig()
 
+  let undoSubscription: vscode.Disposable | undefined
+  const skipNextAddImport = new Set<string>()
+  let disposeUndoSubscriptionTimeout: NodeJS.Timeout | undefined
+  let enableAddImportTimeout: NodeJS.Timeout | undefined
+
+  const outputChannel = vscode.window.createOutputChannel('Import on type')
+
+  function logToOutputChannel(message: string) {
+    outputChannel.appendLine(message)
+    console.info(message)
+  }
+
   async function addImportToDocument(
     document: vscode.TextDocument,
     importPath: string,
     matchedImport: string,
     importType: 'type' | 'default' | 'namespace' | 'named',
   ) {
+    if (skipNextAddImport.has(matchedImport)) {
+      logToOutputChannel(`Skipping add import for ${matchedImport}`)
+      return
+    }
+
     const edit = new vscode.WorkspaceEdit()
 
     // Find all import statements in the document
     const fullText = document.getText()
-    const importRegex = /^import .+$/gm
+    const importEndRegex = /import [\s\S]+?\s+from\s+['"](.*)['"][ ;]*\n/g
     let lastImportMatch: RegExpExecArray | null = null
     let match: RegExpExecArray | null
 
-    while ((match = importRegex.exec(fullText)) !== null) {
+    while ((match = importEndRegex.exec(fullText)) !== null) {
       lastImportMatch = match
     }
 
@@ -83,10 +100,10 @@ export function activate(context: vscode.ExtensionContext) {
         importSpecifier = `{ ${matchedImport} }`
         break
     }
-    const importStatement = `import ${importSpecifier} from '${importPath}'`
+    const importStatement = `import ${importSpecifier} from '${importPath}';`
 
     // Add newline before the import if we're not at the start of the file
-    const textToInsert = lastImportMatch ? `\n${importStatement}` : `${importStatement}\n`
+    const textToInsert = `${importStatement}\n`
 
     edit.insert(document.uri, position, textToInsert)
 
@@ -95,14 +112,48 @@ export function activate(context: vscode.ExtensionContext) {
     if (config.triggerOrganizeImports) {
       vscode.commands.executeCommand('editor.action.organizeImports')
     }
+
+    undoSubscription?.dispose()
+
+    undoSubscription = vscode.commands.registerCommand('undo', () => {
+      skipNextAddImport.add(matchedImport)
+
+      logToOutputChannel(`Disabling add import for 5 seconds for ${matchedImport}`)
+
+      enableAddImportTimeout = setTimeout(() => {
+        skipNextAddImport.delete(matchedImport)
+
+        logToOutputChannel(`Add import is enabled again for ${matchedImport}`)
+      }, 5000)
+
+      undoSubscription?.dispose()
+      vscode.commands.executeCommand('default:undo')
+    })
+
+    disposeUndoSubscriptionTimeout = setTimeout(() => {
+      undoSubscription?.dispose()
+    }, 60_000)
   }
 
   function checkLintErrorsInDocument(document: vscode.TextDocument) {
     const diagnostics = vscode.languages.getDiagnostics(document.uri)
 
+    const hasTsSyntacticErrors = diagnostics.some(
+      (diagnostic) =>
+        diagnostic.source === 'ts' &&
+        (typeof diagnostic.code === 'number' ? diagnostic.code : 0) < 2000,
+    )
+
+    if (hasTsSyntacticErrors) {
+      return
+    }
+
     const tsUndefinedVariableErrors = diagnostics.filter(
       (diagnostic) =>
-        diagnostic.code === 2304 || diagnostic.code === 2582 || diagnostic.code === 2552,
+        diagnostic.source === 'ts' &&
+        (diagnostic.code === 2304 ||
+          diagnostic.code === 2582 ||
+          diagnostic.code === 2552),
     )
 
     for (const diagnostic of tsUndefinedVariableErrors) {
@@ -150,23 +201,35 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   const typeSubscription = vscode.languages.onDidChangeDiagnostics((event) => {
-    const activeEditor = vscode.window.activeTextEditor
+    try {
+      const activeEditor = vscode.window.activeTextEditor
 
-    if (!activeEditor) return
+      if (!activeEditor) return
 
-    const changeHappenedInActiveEditor = event.uris.includes(activeEditor.document.uri)
+      const changeHappenedInActiveEditor = event.uris.includes(activeEditor.document.uri)
 
-    if (!changeHappenedInActiveEditor) return
+      if (!changeHappenedInActiveEditor) return
 
-    checkLintErrorsInDocument(activeEditor.document)
+      checkLintErrorsInDocument(activeEditor.document)
+    } catch (error) {
+      logToOutputChannel(
+        `Error: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
   })
 
   const configSubscription = vscode.workspace.onDidChangeConfiguration((event) => {
     if (event.affectsConfiguration('importOnType')) {
-      console.info('Config changed')
+      logToOutputChannel('Config changed')
       updateConfig()
     }
   })
 
-  context.subscriptions.push(typeSubscription, configSubscription)
+  context.subscriptions.push(typeSubscription, configSubscription, {
+    dispose() {
+      undoSubscription?.dispose()
+      clearTimeout(disposeUndoSubscriptionTimeout)
+      clearTimeout(enableAddImportTimeout)
+    },
+  })
 }
