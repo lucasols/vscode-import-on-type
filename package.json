@@ -1,0 +1,85 @@
+{
+  "name": "import-on-type",
+  "publisher": "lucasols",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./dist/main.js",
+  "repository": "lucasols/import-on-type",
+  "scripts": {
+    "lint": "pnpm tsc && pnpm eslint",
+    "tsc": "tsc -p tsconfig.prod.json",
+    "build": " pnpm lint && pnpm build:no-test",
+    "build:no-test": "tsup --minify --dts && vsce package",
+    "dev": "tsup --watch --minify --dts",
+    "install-extension": "code --install-extension $(ls -t import-on-type-*.vsix | head -n 1)"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@ls-stack/extended-lint": "^0.14.2",
+    "@types/node": "^22.9.0",
+    "@types/vscode": "^1.95.0",
+    "@typescript-eslint/eslint-plugin": "^8.13.0",
+    "@typescript-eslint/parser": "^8.13.0",
+    "eslint": "^9.14.0",
+    "eslint-plugin-unicorn": "^56.0.0",
+    "eslint-plugin-vitest": "^0.5.4",
+    "prettier": "^3.3.3",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.13.0"
+  },
+  "dependencies": {
+    "@ls-stack/utils": "^2.0.1",
+    "@babel/parser": "7.26.2",
+    "@babel/traverse": "7.25.9",
+    "@babel/types": "7.26.0"
+  },
+  "engines": {
+    "vscode": ">=1.83.0",
+    "node": ">=18.0.0"
+  },
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "Import on type",
+      "properties": {
+        "importOnType.triggerOrganizeImports": {
+          "type": "boolean",
+          "description": "Triggers a organize imports action after adding imports",
+          "default": true
+        },
+        "importOnType.imports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "variableOrFn": {
+                "type": "string",
+                "description": "The variable or function that will be imported"
+              },
+              "path": {
+                "type": "string",
+                "description": "The import path"
+              },
+              "isTypeImport": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "variableOrFn",
+              "path"
+            ]
+          },
+          "description": "Array of import triggers and their corresponding import statements"
+        }
+      }
+    }
+  }
+}

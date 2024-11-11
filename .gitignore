@@ -1,0 +1,7 @@
+dist
+node_modules
+*.vsix
+refactools-api.d.ts
+*.jestor.ts
+.vscode-test/.env
+.vscode-test/refactorings/utils/env.ts

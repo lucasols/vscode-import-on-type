@@ -1,0 +1,16 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "eslint.enable": false,
+  "importOnType.waitAfterType": 300,
+  "importOnType.imports": [
+    {
+      "path": "cx",
+      "variableOrFn": "cx"
+    },
+    {
+      "path": "cxType",
+      "variableOrFn": "cxA",
+      "isTypeImport": true
+    }
+  ]
+}
