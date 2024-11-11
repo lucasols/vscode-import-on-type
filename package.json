@@ -70,6 +70,12 @@
               },
               "isTypeImport": {
                 "type": "boolean"
+              },
+              "isDefaultImport": {
+                "type": "boolean"
+              },
+              "isNamespaceImport": {
+                "type": "boolean"
               }
             },
             "required": [

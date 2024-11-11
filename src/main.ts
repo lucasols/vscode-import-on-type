@@ -4,7 +4,9 @@ export function activate(context: vscode.ExtensionContext) {
   type ImportCfg = {
     variableOrFn: string
     path: string
-    isTypeImport: boolean
+    isTypeImport?: boolean
+    isDefaultImport?: boolean
+    isNamespaceImport?: boolean
   }
 
   const config: {
@@ -55,9 +57,12 @@ export function activate(context: vscode.ExtensionContext) {
         document.positionAt(lastImportMatch.index + lastImportMatch[0].length)
       : new vscode.Position(0, 0)
 
-    const importStatement = `import ${
-      importCfg.isTypeImport ? 'type ' : ''
-    } { ${importCfg.variableOrFn} } from '${importCfg.path}'`
+    // Generate import statement based on configuration
+    const importStatement = `import ${importCfg.isTypeImport ? 'type ' : ''}${
+      importCfg.isNamespaceImport ? `* as ${importCfg.variableOrFn}`
+      : importCfg.isDefaultImport ? importCfg.variableOrFn
+      : `{ ${importCfg.variableOrFn} }`
+    } from '${importCfg.path}'`
 
     // Add newline before the import if we're not at the start of the file
     const textToInsert = lastImportMatch ? `\n${importStatement}` : `${importStatement}\n`
