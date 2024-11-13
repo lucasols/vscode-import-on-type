@@ -156,6 +156,8 @@ export function activate(context: vscode.ExtensionContext) {
           diagnostic.code === 2552),
     )
 
+    let addedImports = new Set<string>()
+
     for (const diagnostic of tsUndefinedVariableErrors) {
       const range = diagnostic.range
       const text = document.getText(range)
@@ -195,6 +197,12 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       if (!matchedImport || !importPath || !importType) continue
+
+      const addImportKey = `${importPath}:${matchedImport}:${importType}`
+
+      if (addedImports.has(addImportKey)) continue
+
+      addedImports.add(addImportKey)
 
       addImportToDocument(document, importPath, matchedImport, importType)
     }
