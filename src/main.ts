@@ -156,7 +156,7 @@ export function activate(context: vscode.ExtensionContext) {
           diagnostic.code === 2552),
     )
 
-    let addedImports = new Set<string>()
+    const addedImports = new Set<string>()
 
     for (const diagnostic of tsUndefinedVariableErrors) {
       const range = diagnostic.range
