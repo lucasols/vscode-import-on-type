@@ -141,13 +141,13 @@ export function activate(context: vscode.ExtensionContext) {
   function checkLintErrorsInDocument(document: vscode.TextDocument) {
     const diagnostics = vscode.languages.getDiagnostics(document.uri)
 
-    const hasTsSyntacticErrors = diagnostics.filter((diagnostic) => {
+    const tsSyntacticErrors = diagnostics.filter((diagnostic) => {
       if (diagnostic.source !== 'ts') return false
 
       const diagnosticCode = typeof diagnostic.code === 'number' ? diagnostic.code : 0
 
       // Ignore verbatimModuleSyntax errors
-      if (diagnosticCode === 1483) return false
+      if (diagnosticCode === 1484) return false
 
       return diagnosticCode < 2000
     })
@@ -208,12 +208,12 @@ export function activate(context: vscode.ExtensionContext) {
 
       addedImports.add(addImportKey)
 
-      if (hasTsSyntacticErrors.length) {
+      if (tsSyntacticErrors.length) {
         logToOutputChannel(
           `Skipping add import of ${
             matchedImport
-          } to presence of syntactic errors: ${hasTsSyntacticErrors
-            .map((d) => d.message)
+          } due to presence of syntactic errors: ${tsSyntacticErrors
+            .map((d) => (typeof d.code === 'number' ? d.code : 0))
             .join(', ')}`,
         )
         return
