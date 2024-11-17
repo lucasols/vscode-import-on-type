@@ -141,7 +141,7 @@ export function activate(context: vscode.ExtensionContext) {
   function checkLintErrorsInDocument(document: vscode.TextDocument) {
     const diagnostics = vscode.languages.getDiagnostics(document.uri)
 
-    const hasTsSyntacticErrors = diagnostics.some((diagnostic) => {
+    const hasTsSyntacticErrors = diagnostics.filter((diagnostic) => {
       if (diagnostic.source !== 'ts') return false
 
       const diagnosticCode = typeof diagnostic.code === 'number' ? diagnostic.code : 0
@@ -151,10 +151,6 @@ export function activate(context: vscode.ExtensionContext) {
 
       return diagnosticCode < 2000
     })
-
-    if (hasTsSyntacticErrors) {
-      return
-    }
 
     const tsUndefinedVariableErrors = diagnostics.filter(
       (diagnostic) =>
@@ -211,6 +207,17 @@ export function activate(context: vscode.ExtensionContext) {
       if (addedImports.has(addImportKey)) continue
 
       addedImports.add(addImportKey)
+
+      if (hasTsSyntacticErrors.length) {
+        logToOutputChannel(
+          `Skipping add import of ${
+            matchedImport
+          } to presence of syntactic errors: ${hasTsSyntacticErrors
+            .map((d) => d.message)
+            .join(', ')}`,
+        )
+        return
+      }
 
       addImportToDocument(document, importPath, matchedImport, importType)
     }
