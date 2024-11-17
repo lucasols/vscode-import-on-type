@@ -102,8 +102,11 @@ export function activate(context: vscode.ExtensionContext) {
     }
     const importStatement = `import ${importSpecifier} from '${importPath}';`
 
-    // Add newline before the import if we're not at the start of the file
     const textToInsert = `${importStatement}\n`
+
+    if (fullText.includes(importStatement)) {
+      return
+    }
 
     edit.insert(document.uri, position, textToInsert)
 
