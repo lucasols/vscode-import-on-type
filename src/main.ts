@@ -141,11 +141,16 @@ export function activate(context: vscode.ExtensionContext) {
   function checkLintErrorsInDocument(document: vscode.TextDocument) {
     const diagnostics = vscode.languages.getDiagnostics(document.uri)
 
-    const hasTsSyntacticErrors = diagnostics.some(
-      (diagnostic) =>
-        diagnostic.source === 'ts' &&
-        (typeof diagnostic.code === 'number' ? diagnostic.code : 0) < 2000,
-    )
+    const hasTsSyntacticErrors = diagnostics.some((diagnostic) => {
+      if (diagnostic.source !== 'ts') return false
+
+      const diagnosticCode = typeof diagnostic.code === 'number' ? diagnostic.code : 0
+
+      // Ignore verbatimModuleSyntax errors
+      if (diagnosticCode === 1483) return false
+
+      return diagnosticCode < 2000
+    })
 
     if (hasTsSyntacticErrors) {
       return
