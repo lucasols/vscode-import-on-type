@@ -152,6 +152,15 @@ export function activate(context: vscode.ExtensionContext) {
       return diagnosticCode < 2000
     })
 
+    if (tsSyntacticErrors.length) {
+      logToOutputChannel(
+        `Skipping add imports check due to presence of syntactic errors: ${tsSyntacticErrors
+          .map((d) => (typeof d.code === 'number' ? d.code : 0))
+          .join(', ')}`,
+      )
+      return
+    }
+
     const tsUndefinedVariableErrors = diagnostics.filter(
       (diagnostic) =>
         diagnostic.source === 'ts' &&
@@ -207,17 +216,6 @@ export function activate(context: vscode.ExtensionContext) {
       if (addedImports.has(addImportKey)) continue
 
       addedImports.add(addImportKey)
-
-      if (tsSyntacticErrors.length) {
-        logToOutputChannel(
-          `Skipping add import of ${
-            matchedImport
-          } due to presence of syntactic errors: ${tsSyntacticErrors
-            .map((d) => (typeof d.code === 'number' ? d.code : 0))
-            .join(', ')}`,
-        )
-        return
-      }
 
       addImportToDocument(document, importPath, matchedImport, importType)
     }
